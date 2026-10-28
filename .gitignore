@@ -1,0 +1,21 @@
+# Entorno virtual
+.venv/
+
+# Microdatos del INEC (pesados, se descargan aparte)
+data/raw/
+data/processed/*.parquet
+
+# Documentación del INEC (PDFs pesados, se descargan del sitio oficial)
+docs/guias/
+
+# Tableau: archivos temporales y versiones de trabajo
+*.twbr
+data/tableau/Libro1.twb
+
+# Notas personales de trabajo
+CLAUDE.md
+
+# Python / VS Code
+__pycache__/
+*.pyc
+.ipynb_checkpoints/

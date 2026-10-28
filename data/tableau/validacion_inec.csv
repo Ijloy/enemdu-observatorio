@@ -1,0 +1,23 @@
+Periodo,Nivel,Indicador,Cálculo propio (%),Cifra INEC (%),Diferencia (pts),Fuente
+May 2025,Nacional,Tasa de participación global,65.4,65.4,0.0,"INEC, tabla resumen ENEMDU mensual"
+May 2025,Nacional,Empleo adecuado,35.2,35.2,0.0,"INEC, tabla resumen ENEMDU mensual"
+May 2025,Nacional,Subempleo,20.9,20.9,0.0,"INEC, tabla resumen ENEMDU mensual"
+May 2025,Nacional,Desempleo,4.1,4.1,0.0,"INEC, tabla resumen ENEMDU mensual"
+Dic 2025,Nacional,Empleo adecuado,37.1,37.1,0.0,"INEC, boletín ENEMDU dic-2025"
+Dic 2025,Nacional,Subempleo,17.4,17.4,0.0,"INEC, boletín ENEMDU dic-2025"
+Dic 2025,Nacional,Desempleo,2.6,2.6,0.0,"INEC, boletín ENEMDU dic-2025"
+T1 2025,Quito,Empleo adecuado,53.9,53.9,0.0,INEC vía Bloomberg Línea
+T1 2025,Quito,Subempleo,15.1,14.7,0.4,INEC vía Bloomberg Línea
+T1 2025,Quito,Desempleo,7.2,7.7,-0.5,INEC vía Bloomberg Línea
+T1 2025,Guayaquil,Empleo adecuado,47.2,48.3,-1.1,INEC vía Bloomberg Línea
+T1 2025,Guayaquil,Subempleo,21.8,21.0,0.8,INEC vía Bloomberg Línea
+T1 2025,Guayaquil,Desempleo,3.5,3.6,-0.1,INEC vía Bloomberg Línea
+T1 2025,Cuenca,Empleo adecuado,58.0,59.3,-1.3,INEC vía Bloomberg Línea
+T1 2025,Cuenca,Subempleo,11.1,10.6,0.5,INEC vía Bloomberg Línea
+T1 2025,Cuenca,Desempleo,4.3,5.2,-0.9,INEC vía Bloomberg Línea
+T1 2025,Machala,Empleo adecuado,44.6,45.0,-0.4,INEC vía Bloomberg Línea
+T1 2025,Machala,Subempleo,21.2,20.4,0.8,INEC vía Bloomberg Línea
+T1 2025,Machala,Desempleo,5.4,5.8,-0.4,INEC vía Bloomberg Línea
+T1 2025,Ambato,Empleo adecuado,44.3,44.0,0.3,INEC vía Bloomberg Línea
+T1 2025,Ambato,Subempleo,18.9,19.9,-1.0,INEC vía Bloomberg Línea
+T1 2025,Ambato,Desempleo,4.1,4.0,0.1,INEC vía Bloomberg Línea
