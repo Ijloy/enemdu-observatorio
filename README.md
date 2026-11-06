@@ -26,7 +26,7 @@ validación contra cifras oficiales y visualización en **Tableau Public**.
   | 2024 | 64,3 % | 35,9 % | 21,0 % | 3,7 % |
   | 2025 | 64,3 % | 37,1 % | 19,4 % | 3,6 % |
 
-- **Aun así, solo 37 de cada 100 trabajadores tiene empleo adecuado.** En 2025 la PEA se
+- **Aun así, solo 37 de cada 100 personas de la PEA tienen empleo adecuado.** En 2025 la PEA se
   reparte en: empleo adecuado 37,1 %, otro empleo no pleno 30,8 %, subempleo 19,4 %,
   empleo no remunerado 8,8 %, desempleo 3,6 % y no clasificado 0,2 %.
 - **Quito tuvo el desempleo más alto de las 5 ciudades principales** en los cuatro
@@ -40,19 +40,77 @@ validación contra cifras oficiales y visualización en **Tableau Public**.
   - **Bases mensuales enero–diciembre 2025:** para el detalle mensual y por ciudad.
 - Descarga: [ENEMDU mensual](https://www.ecuadorencifras.gob.ec/estadisticas-laborales-enemdu/) ·
   [ENEMDU anual](https://www.ecuadorencifras.gob.ec/enemdu-anual/)
-- Los microdatos (`.sav`, ~600 MB) no se incluyen en el repositorio; se colocan en
+- Los microdatos (`.sav`, ~700 MB) no se incluyen en el repositorio; se colocan en
   `data/bronce/` como se indica abajo.
 
 ## Arquitectura medallón
 
-| Capa | Contenido | Script |
-|---|---|---|
-| 🥉 **Bronce** | Datos crudos del INEC tal como llegan (`.sav`) y una copia fiel en Parquet con columnas de trazabilidad (`periodicidad`, `anio`, `mes`, `archivo_origen`). Ingesta incremental: solo procesa archivos nuevos. | `01_bronce.py` |
-| 🥈 **Plata** | Una fila por persona: variables seleccionadas con nombres claros, tipos corregidos, etiquetas legibles (sexo, área, ciudad, grupo de edad, categoría de la PEA) y controles de calidad (factor de expansión válido, códigos `condact` en rango). Bases anuales y mensuales se guardan por separado porque cada una tiene su propio factor de expansión. | `02_plata.py` |
-| 🥇 **Oro** | Tablas agregadas listas para el dashboard: indicadores anuales, composición de la PEA, indicadores mensuales, ciudades por trimestre y validación contra el INEC. | `03_oro.py`, `04_validacion.py` |
+La arquitectura medallón organiza los datos en tres capas, como las medallas: **bronce, plata
+y oro**. Cada capa lee solo de la anterior y deja los datos más limpios y más cerca de la
+pregunta que se quiere responder. La ventaja es que cada etapa tiene una sola responsabilidad:
+si cambia una definición, se vuelve a correr desde esa capa sin descargar ni releer los
+microdatos, y cualquier cifra del dashboard se puede rastrear hasta el archivo original del INEC.
 
-`05_exportar_tableau.py` toma la capa oro y genera los CSV con nombres claros que lee Tableau.
-Las rutas y los códigos del INEC están centralizados en `src/config.py`.
+```mermaid
+flowchart LR
+    A["Microdatos INEC<br/>.sav"] --> B["🥉 Bronce<br/>copia fiel en Parquet"]
+    B --> C["🥈 Plata<br/>personas limpias"]
+    C --> D["🥇 Oro<br/>indicadores agregados"]
+    D --> E["CSV para Tableau"]
+    E --> F["Dashboard"]
+```
+
+| Capa | Pregunta que responde | Granularidad | Volumen actual | ¿En el repo? |
+|---|---|---|---|---|
+| 🥉 **Bronce** | ¿Qué entregó exactamente el INEC? | La original de cada base | 17 bases, 2 076 026 filas | No |
+| 🥈 **Plata** | ¿Quién es cada persona, con datos limpios? | Una fila por persona | 2 076 026 personas, 21 columnas | No |
+| 🥇 **Oro** | ¿Cuáles son los indicadores? | Agregada por periodo y grupo | 5 tablas CSV | Sí |
+
+### 🥉 Bronce: los datos tal como llegan
+
+`src/01_bronce.py` lee cada `.sav` y guarda una copia en Parquet **sin limpiar ni eliminar nada**.
+Solo agrega columnas de trazabilidad (`periodicidad`, `anio`, `mes`, `archivo_origen`).
+La ingesta es incremental: omite los archivos cuyo Parquet ya está al día. Así, si una capa
+posterior tiene un error, el dato original sigue intacto y no hace falta volver a leer los `.sav`.
+
+### 🥈 Plata: los datos limpios y entendibles
+
+`src/02_plata.py` conserva las variables necesarias y las deja listas para analizar:
+
+- **Nombres claros:** `p02` pasa a `sexo_cod`, `p03` a `edad` y `fexp` a `factor_expansion`.
+- **Tipos correctos:** enteros y decimales en lugar de valores mixtos.
+- **Etiquetas legibles:** sexo, área, ciudad, nivel de instrucción, grupo de edad y categoría de la PEA.
+- **Banderas de población:** `es_pet` y `es_pea`.
+- **Controles de calidad:** informa si hay factores de expansión vacíos o no positivos y códigos
+  `condact` faltantes o fuera de rango.
+
+Las bases anuales y mensuales se guardan en archivos separados porque cada una tiene su propio
+factor de expansión y mezclarlas duplicaría a la población.
+
+### 🥇 Oro: las respuestas listas para usar
+
+`src/03_oro.py` y `src/04_validacion.py` ponderan los datos de plata con el factor de expansión y
+generan las tablas finales:
+
+| Tabla en `data/oro/` | Contenido |
+|---|---|
+| `indicadores_anuales.csv` | Nacional, área y sexo por año, 2021–2025 |
+| `composicion_pea_anual.csv` | Reparto de la PEA por categoría (suma 100 %) |
+| `indicadores_mensuales_2025.csv` | Mensual 2025 por área, sexo, edad, educación y ciudad |
+| `ciudades_trimestral_2025.csv` | Las 5 ciudades principales por trimestre |
+| `validacion_inec.csv` | Cálculo propio frente a la cifra oficial del INEC |
+
+Después, `src/05_exportar_tableau.py` copia estas tablas a `data/tableau/` con nombres claros y
+redondeadas a 1 decimal. Las rutas y los códigos del INEC están centralizados en `src/config.py`.
+
+### Ejemplo: el recorrido de un dato
+
+Una persona con subempleo por insuficiencia de tiempo pasa por las capas así:
+
+1. **Bronce:** aparece con el código original, `condact = 2`.
+2. **Plata:** recibe la etiqueta `Subempleo por insuficiencia de tiempo`, la categoría `Subempleo`
+   y la bandera `es_pea = True`.
+3. **Oro:** su factor de expansión se suma a la tasa de subempleo de su año, que en 2025 fue de 19,4 %.
 
 ## Método
 
@@ -102,7 +160,8 @@ El detalle está en `data/oro/validacion_inec.csv`.
 ├── data/
 │   ├── bronce/                   # microdatos INEC (no incluidos en el repo)
 │   │   ├── anual/                #   2021.sav … 2025.sav
-│   │   └── mensual/              #   2025_01.sav … 2025_12.sav
+│   │   ├── mensual/              #   2025_01.sav … 2025_12.sav
+│   │   └── parquet/              #   copia fiel generada por 01_bronce.py
 │   ├── plata/                    # personas limpias en Parquet (no incluido)
 │   ├── oro/                      # tablas de negocio (CSV)
 │   └── tableau/                  # CSV que consume el dashboard
