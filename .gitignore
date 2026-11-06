@@ -1,7 +1,10 @@
 # Entorno virtual
 .venv/
 
-# Microdatos del INEC (pesados, se descargan aparte)
+# Arquitectura medallón: bronce y plata son pesados y se regeneran con los scripts
+data/bronce/
+data/plata/
+# (data/oro y data/tableau sí se versionan: son los resultados)
 data/raw/
 data/processed/*.parquet
 

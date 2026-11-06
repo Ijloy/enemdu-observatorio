@@ -1,5 +1,4 @@
 pandas
 pyreadstat
 pyarrow
-plotly
-streamlit
+numpy

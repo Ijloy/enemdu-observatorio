@@ -1,18 +1,21 @@
 """
-Paso 3a: revisa en el diccionario interno del .sav (metadatos) qué significan
-las variables clave y sus códigos, antes de calcular indicadores.
+Utilidad de exploración: revisa en el diccionario interno del .sav (metadatos)
+qué significan las variables clave y sus códigos. Se usó para diseñar la capa plata.
 
 Uso:
-    python src/02_explorar_variables.py
+    python src/utils/explorar_variables.py
 """
+import sys
 from pathlib import Path
 
 import pandas as pd
 import pyreadstat
 
-RAIZ = Path(__file__).resolve().parent.parent
-SAV = RAIZ / "data" / "raw" / "2025_12.sav"
-PARQUET = RAIZ / "data" / "processed" / "enemdu_personas_2025.parquet"
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+from config import BRONCE_MENSUAL, PLATA  # noqa: E402
+
+SAV = BRONCE_MENSUAL / "2025_12.sav"
+PARQUET = PLATA / "personas_mensual.parquet"
 
 # Variables que esperamos usar (nombres homologados del INEC)
 CLAVE = ["condact", "empleo", "desempleo", "pea", "ciudad", "area", "dominio",
@@ -48,8 +51,8 @@ for var, lab in etiquetas.items():
         print(f"   {var:<12} {lab}")
 
 # Distribución ponderada de condact en diciembre, para una primera mirada
-df = pd.read_parquet(PARQUET, columns=["mes", "condact", "fexp"])
+df = pd.read_parquet(PARQUET, columns=["mes", "condicion_actividad", "factor_expansion"])
 dic = df[df["mes"] == 12]
-dist = dic.groupby("condact")["fexp"].sum() / 1e6
+dist = dic.groupby("condicion_actividad")["factor_expansion"].sum() / 1e6
 print("\n\nDiciembre 2025, personas por condact (millones, ponderado):")
 print(dist.round(3).to_string())
